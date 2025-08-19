@@ -1,0 +1,64 @@
+---
+title: "Day 7 Activities"
+author: "Sofia Sarak"
+format: html
+editor: visual
+---
+
+## Task 1: Joins on birds
+
+Loading proper packages
+```{r}
+library(here)
+library(tidyverse)
+```
+Loading in datasets 
+```{r}
+bird_observations <- read_csv(here::here("data", "52_pp52_birds_1.csv"))
+sites <- read_csv(here::here("data", "52_pp52_sites_1.csv"))
+surveys <- read_csv(here::here("data", "52_pp52_surveys_1.csv"))
+taxalist <- read_csv(here::here("data", "52_pp52_taxalist_1.csv"))
+```
+
+Creating subset of birds dataset
+```{r}
+birds_subset <- bird_observations %>% 
+  filter(species_id %in% c("BHCO", "RWBL"), site_id %in% c("LI-W", "NU-C"))
+```
+
+Practice with left_join()!
+```{r}
+birds_left <- left_join(birds_subset, sites, by = "site_id")
+birds_left <- left_join(birds_left, taxalist, by = "species_id")
+#left join keeps all rows from the birds_subset data set, and just adds the correlated info from the other datasets
+```
+
+Practice with full_join()!
+We expect for all rows from both datasets to be kept in this join. That means, there may be site data in this data set that has no bird data associated with it.
+```{r}
+birds_full <- full_join(birds_subset, sites) #R automatically joined by site_id
+#I was correct! Lots of observations that are just site info with no surveys there
+```
+
+## Task 2: Data visualization and wrangling with birds
+
+Renaming some stuff, joining, and other wrangling
+```{r}
+bird_observations <- bird_observations %>% 
+  rename(bird_obs_notes = notes) %>% 
+  left_join(taxalist, by = "species_id") %>% 
+  left_join(sites, by = "site_id") %>% 
+  left_join(surveys, by = "survey_id") %>% 
+  select(survey_date, common_name, park_name, bird_count) %>% 
+  mutate(survey_month = as.factor(lubridate::month(survey_date))) %>% 
+  relocate(survey_month, .after = survey_date)
+```
+Quick summary!
+Could have probably just piped this in from the previous lines of code, but I wanted to keep my clean dataset :,)
+```{r}
+bird_number <- bird_observations %>% 
+  group_by(park_name, survey_month) %>% 
+  summarize(total_observed = n()) %>% 
+  filter(park_name %in% c("Lindo", "Orme", "Palomino", "Sonrisa"))
+```
+
