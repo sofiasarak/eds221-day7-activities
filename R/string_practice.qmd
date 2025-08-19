@@ -1,0 +1,44 @@
+---
+title: "Day 7 Task 3!"
+author: "Sofia Sarak"
+format: html
+editor: visual
+---
+
+Pasting in dataset
+```{r}
+rm(list = ls())
+alarm_report <- data.frame(
+  stringsAsFactors = FALSE,
+              date = c("2020-03-14", "2020-03-15", "2020-04-10", "2020-04-18"),
+          building = c("Engineering-North",
+                       "Bren Hall","Engineering-South","Engr-North"),
+     alarm_message = c("10:02am -- HVAC system down, facilities management alerted",
+                       "8:24am -- Elevator North out of service",
+                       "12:41am -- Fire alarm, UCSB fire responded and cleared",
+                       "9:58pm -- Campus point emergency siren, UCPD responded")
+)
+```
+
+Working with strings
+```{r}
+#replacing words
+alarm_report$building <- str_replace(alarm_report$building, "Engr", "Engineering")
+
+#creating two columns from one (with separator)
+larm_report <- alarm_report %>% 
+      separate(building, into= c("building", "wing"), sep = "-")
+
+#keeping only those with responded in them
+alarm_report <- alarm_report %>% 
+  filter(stringr::str_detect(alarm_message, "responded"))
+
+#creating two columns from one againe
+alarm_report <- alarm_report %>% 
+  separate(alarm_message, into = c("time", "alarm_message"), sep = "--" )
+
+#putting date into a date class!
+alarm_report <- alarm_report %>% 
+  mutate(date = lubridate::ymd(date))
+```
+
